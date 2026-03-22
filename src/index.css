@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
 * {
   margin: 0;
   padding: 0;
@@ -11,8 +13,8 @@ html, body, #root {
 }
 
 body {
-  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-  background: linear-gradient(135deg, #1a7a1a 0%, #2d8f2d 50%, #1a6a1a 100%);
+  font-family: 'Press Start 2P', monospace;
+  background: #1A0A2E;
   color: #fff;
   user-select: none;
   -webkit-user-select: none;
@@ -23,313 +25,251 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  background: linear-gradient(180deg, #2D1B69 0%, #1A0A2E 40%, #0D0518 100%);
 }
 
-/* ── Menu ── */
-.menu {
-  text-align: center;
-  padding: 2rem;
-  animation: fadeIn 0.5s ease;
-}
-
-.title {
-  font-size: clamp(2rem, 6vw, 3.5rem);
-  margin-bottom: 0.5rem;
-  text-shadow: 3px 3px 6px rgba(0,0,0,0.4);
-}
-
-.subtitle {
-  font-size: clamp(1rem, 3vw, 1.4rem);
-  opacity: 0.9;
-  margin-bottom: 2rem;
-}
-
-/* ── Buttons ── */
-.btn {
-  display: inline-block;
-  padding: 1rem 2.5rem;
-  margin: 0.5rem;
-  border: none;
-  border-radius: 1rem;
-  font-size: clamp(1rem, 3vw, 1.3rem);
-  font-weight: 700;
-  cursor: pointer;
-  transition: transform 0.15s, box-shadow 0.15s;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-}
-
-.btn:active {
-  transform: scale(0.95);
-}
-
-.btn-pick {
-  background: #fff;
-  color: #333;
-}
-
-.btn-play {
-  background: #FFD600;
-  color: #333;
-  font-size: clamp(1.2rem, 4vw, 1.6rem);
-}
-
-.btn-play:hover {
-  box-shadow: 0 6px 20px rgba(255,214,0,0.5);
-}
-
-/* ── Animal Picker ── */
-.picker {
-  text-align: center;
+/* ═══════════════════════════════════════
+   SCREENS (shared)
+   ═══════════════════════════════════════ */
+.screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   padding: 1.5rem;
+  text-align: center;
   animation: fadeIn 0.4s ease;
+  width: 100%;
+  max-width: 480px;
 }
 
-.picker h2 {
-  font-size: clamp(1.4rem, 4vw, 2rem);
+/* ═══════════════════════════════════════
+   RETRO TYPOGRAPHY
+   ═══════════════════════════════════════ */
+.retro-title {
+  font-family: 'Press Start 2P', monospace;
+  font-size: clamp(1rem, 4vw, 1.6rem);
+  line-height: 1.6;
+  color: #FFD700;
+  text-shadow:
+    0 0 10px rgba(255, 215, 0, 0.5),
+    2px 2px 0 #C850C0;
+  margin-bottom: 0.8rem;
+}
+
+.main-title {
+  font-size: clamp(1.4rem, 5vw, 2.2rem);
+  margin-bottom: 0.5rem;
+}
+
+.retro-sub {
+  font-family: 'Press Start 2P', monospace;
+  font-size: clamp(0.5rem, 2vw, 0.7rem);
+  color: #C850C0;
+  opacity: 0.8;
   margin-bottom: 1.5rem;
 }
 
-.animal-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1rem;
-  max-width: 400px;
-  margin: 0 auto;
+/* ═══════════════════════════════════════
+   MENU
+   ═══════════════════════════════════════ */
+.menu-screen {
+  gap: 0.5rem;
 }
 
-.animal-card {
+.menu-glow {
+  position: fixed;
+  top: 20%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle, rgba(200, 80, 192, 0.15) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.menu-footer {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 0.5rem;
+  color: rgba(255, 255, 255, 0.3);
+  margin-top: 2rem;
+}
+
+/* ═══════════════════════════════════════
+   BUTTONS
+   ═══════════════════════════════════════ */
+.retro-btn {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.3rem;
-  padding: 1rem;
-  border: 4px solid;
-  border-radius: 1rem;
-  background: rgba(255,255,255,0.15);
-  backdrop-filter: blur(4px);
+  gap: 4px;
+  padding: 0.8rem 2rem;
+  margin: 0.4rem;
+  border: 3px solid;
+  border-radius: 4px;
+  font-family: 'Press Start 2P', monospace;
+  font-size: clamp(0.6rem, 2.5vw, 0.85rem);
   cursor: pointer;
-  transition: transform 0.15s, background 0.15s;
+  transition: transform 0.1s, box-shadow 0.1s;
+  text-align: center;
+  min-width: 220px;
 }
 
-.animal-card:active {
+.retro-btn:active {
+  transform: scale(0.95);
+}
+
+.pick-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: #C850C0;
+  color: #FFB6C1;
+}
+
+.pick-btn:hover {
+  background: rgba(200, 80, 192, 0.15);
+  box-shadow: 0 0 15px rgba(200, 80, 192, 0.3);
+}
+
+.play-btn {
+  background: linear-gradient(180deg, #FFD700 0%, #FFA500 100%);
+  border-color: #FFD700;
+  color: #1A0A2E;
+  font-size: clamp(0.8rem, 3vw, 1.1rem);
+}
+
+.play-btn:hover {
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.4);
+}
+
+.btn-hint {
+  font-size: 0.4rem;
+  opacity: 0.6;
+}
+
+/* ═══════════════════════════════════════
+   CHARACTER SELECT
+   ═══════════════════════════════════════ */
+.select-screen .retro-title {
+  margin-bottom: 1.2rem;
+}
+
+.char-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.7rem;
+  max-width: 420px;
+  width: 100%;
+}
+
+.char-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 0.7rem 0.4rem;
+  border: 3px solid;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: transform 0.12s, box-shadow 0.12s;
+}
+
+.char-card:active {
   transform: scale(0.92);
 }
 
-.animal-card:hover {
-  background: rgba(255,255,255,0.3);
+.char-card:hover {
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.15);
+  transform: translateY(-2px);
 }
 
-.animal-emoji {
-  font-size: 3rem;
-}
-
-.animal-name {
-  font-size: 1rem;
-  font-weight: 600;
-  color: #fff;
-}
-
-/* ── Game ── */
-.game {
-  width: 100%;
-  max-width: 500px;
-  padding: 1rem;
-  animation: fadeIn 0.3s ease;
-}
-
-.scoreboard {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: rgba(0,0,0,0.3);
-  border-radius: 1rem;
-  padding: 0.8rem 1.2rem;
-  margin-bottom: 0.8rem;
-}
-
-.score-team {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.score-emoji {
-  font-size: 2rem;
-}
-
-.score-num {
+.char-emoji {
   font-size: 2.2rem;
-  font-weight: 800;
 }
 
-.score-info {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  font-size: 0.9rem;
-  opacity: 0.9;
+.char-name {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 0.45rem;
+  color: #FFD700;
+  line-height: 1.4;
 }
 
-.role-label {
-  font-weight: 700;
-  font-size: 1rem;
-  margin-top: 2px;
+.char-title {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 0.35rem;
+  color: rgba(255, 255, 255, 0.4);
 }
 
-.instruction {
-  text-align: center;
-  font-size: clamp(1rem, 3vw, 1.2rem);
-  margin-bottom: 0.8rem;
-  min-height: 1.5em;
-}
-
-/* ── Field & Goal ── */
-.field {
-  position: relative;
-  width: 100%;
-  aspect-ratio: 4 / 3;
-  background: linear-gradient(180deg, #4CAF50 0%, #388E3C 100%);
-  border-radius: 1rem;
-  overflow: hidden;
-  box-shadow: 0 8px 30px rgba(0,0,0,0.4);
-}
-
-.goal-area {
-  position: absolute;
-  top: 5%;
-  left: 10%;
-  width: 80%;
-  height: 55%;
-  background: rgba(255,255,255,0.08);
-  border: 4px solid #fff;
-  border-radius: 0.5rem 0.5rem 0 0;
-  cursor: crosshair;
-  overflow: hidden;
-}
-
-/* Net pattern */
-.net {
-  position: absolute;
-  inset: 0;
-  background-image:
-    linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px);
-  background-size: 20% 25%;
-  pointer-events: none;
-}
-
-/* Ball */
-.ball {
-  position: absolute;
-  transform: translate(-50%, -50%);
-  font-size: clamp(2rem, 6vw, 3rem);
-  animation: ballFly 0.4s ease-out;
-  pointer-events: none;
-  z-index: 2;
-}
-
-/* Goalkeeper */
-.goalkeeper {
-  position: absolute;
-  transform: translate(-50%, -50%);
-  font-size: clamp(2.5rem, 7vw, 3.5rem);
-  animation: diveAnim 0.4s ease-out;
-  pointer-events: none;
-  z-index: 1;
-}
-
-/* Shooter at bottom of field */
-.shooter {
-  position: absolute;
-  bottom: 5%;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: clamp(2.5rem, 7vw, 3.5rem);
-  animation: bounceIdle 1s ease-in-out infinite;
-  pointer-events: none;
-}
-
-/* Result overlay */
-.result-overlay {
-  position: absolute;
-  inset: 0;
+/* ═══════════════════════════════════════
+   GAME CANVAS
+   ═══════════════════════════════════════ */
+.canvas-wrapper {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: clamp(1.5rem, 5vw, 2.5rem);
-  font-weight: 800;
-  animation: popIn 0.3s ease;
-  pointer-events: none;
-  z-index: 10;
+  width: 100%;
+  height: 100%;
+  padding: 8px;
 }
 
-.result-good {
-  background: rgba(76, 175, 80, 0.7);
+.game-canvas {
+  width: 100%;
+  max-width: 768px;
+  max-height: 100vh;
+  aspect-ratio: 384 / 256;
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+  border-radius: 4px;
+  border: 3px solid #2D1B69;
+  box-shadow:
+    0 0 30px rgba(200, 80, 192, 0.2),
+    0 0 60px rgba(106, 5, 114, 0.1);
+  cursor: crosshair;
 }
 
-.result-bad {
-  background: rgba(239, 83, 80, 0.5);
+/* ═══════════════════════════════════════
+   FINAL SCREEN
+   ═══════════════════════════════════════ */
+.final-screen {
+  gap: 0.8rem;
 }
 
-/* ── Final Screen ── */
-.final {
-  text-align: center;
-  padding: 2rem;
-  animation: fadeIn 0.5s ease;
-}
-
-.final-emoji {
-  font-size: clamp(4rem, 12vw, 7rem);
+.final-trophy {
+  font-size: clamp(3rem, 10vw, 5rem);
   animation: popIn 0.5s ease;
 }
 
-.final-title {
-  font-size: clamp(1.8rem, 5vw, 2.8rem);
-  margin: 1rem 0 0.5rem;
-}
-
-.final-score {
-  font-size: clamp(3rem, 8vw, 5rem);
-  font-weight: 900;
+.final-score-big {
+  font-family: 'Press Start 2P', monospace;
+  font-size: clamp(1.2rem, 5vw, 2rem);
+  color: #FFD700;
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.4);
   margin: 0.5rem 0;
-  text-shadow: 3px 3px 8px rgba(0,0,0,0.3);
 }
 
-.final-text {
-  font-size: clamp(1rem, 3vw, 1.3rem);
-  opacity: 0.9;
-  margin-bottom: 2rem;
-}
-
-.final-buttons {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-/* ── Animations ── */
+/* ═══════════════════════════════════════
+   ANIMATIONS
+   ═══════════════════════════════════════ */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes ballFly {
-  from { opacity: 0; transform: translate(-50%, 200%); }
-  to { opacity: 1; transform: translate(-50%, -50%); }
-}
-
-@keyframes diveAnim {
-  from { opacity: 0.5; transform: translate(-50%, 0%); }
-  to { opacity: 1; transform: translate(-50%, -50%); }
-}
-
-@keyframes bounceIdle {
-  0%, 100% { transform: translateX(-50%) translateY(0); }
-  50% { transform: translateX(-50%) translateY(-8px); }
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes popIn {
-  from { opacity: 0; transform: scale(0.5); }
-  to { opacity: 1; transform: scale(1); }
+  from { opacity: 0; transform: scale(0.3); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+/* ═══════════════════════════════════════
+   MOBILE
+   ═══════════════════════════════════════ */
+@media (max-width: 480px) {
+  .char-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .retro-btn {
+    min-width: 180px;
+    padding: 0.6rem 1.2rem;
+  }
 }
