@@ -3,12 +3,24 @@ import './index.css';
 import type { Character, AppPhase } from './game/types';
 import CharacterSelect from './components/CharacterSelect';
 import GameCanvas from './components/GameCanvas';
-import { playClick, initAudio } from './game/sound';
+import { playClick, initAudio, startBgm, stopBgm, isBgmPlaying } from './game/sound';
 
 function App() {
   const [phase, setPhase] = useState<AppPhase>('menu');
   const [player, setPlayer] = useState<Character | null>(null);
   const [finalScore, setFinalScore] = useState({ p: 0, ai: 0 });
+  const [musicOn, setMusicOn] = useState(false);
+
+  const toggleMusic = useCallback(() => {
+    initAudio();
+    if (isBgmPlaying()) {
+      stopBgm();
+      setMusicOn(false);
+    } else {
+      startBgm();
+      setMusicOn(true);
+    }
+  }, []);
 
   const handlePick = useCallback((ch: Character) => {
     setPlayer(ch);
@@ -20,6 +32,10 @@ function App() {
     setPhase('final');
   }, []);
 
+  const handleBack = useCallback(() => {
+    setPhase('menu');
+  }, []);
+
   // ── Menu ──
   if (phase === 'menu') {
     return (
@@ -28,7 +44,7 @@ function App() {
         <h1 className="retro-title main-title">Звериные<br/>Пенальти</h1>
         <p className="retro-sub">Fantasy Penalty Shootout</p>
 
-        <button className="retro-btn pick-btn" onClick={() => { initAudio(); playClick(); setPhase('select'); }}>
+        <button className="retro-btn pick-btn" onClick={() => { initAudio(); if (!isBgmPlaying()) { startBgm(); setMusicOn(true); } playClick(); setPhase('select'); }}>
           {player ? (
             <>
               {player.emoji} {player.name}
@@ -45,6 +61,10 @@ function App() {
           </button>
         )}
 
+        <button className="music-toggle" onClick={toggleMusic} title={musicOn ? 'Выключить музыку' : 'Включить музыку'}>
+          {musicOn ? '♪' : '♪̸'}
+        </button>
+
         <div className="menu-footer">⚽ 5 пенальти · бей и лови ⚽</div>
       </div>
     );
@@ -55,13 +75,9 @@ function App() {
     return <CharacterSelect onPick={handlePick} />;
   }
 
-  const handleBack = useCallback(() => {
-    setPhase('menu');
-  }, []);
-
   // ── Playing ──
   if (phase === 'playing' && player) {
-    return <GameCanvas key={Date.now()} player={player} onFinish={handleFinish} onBack={handleBack} />;
+    return <GameCanvas key={Date.now()} player={player} onFinish={handleFinish} onBack={handleBack} musicOn={musicOn} onToggleMusic={toggleMusic} />;
   }
 
   // ── Final ──

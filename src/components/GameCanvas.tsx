@@ -8,9 +8,11 @@ interface GameCanvasProps {
   player: Character;
   onFinish: (playerScore: number, aiScore: number) => void;
   onBack: () => void;
+  musicOn: boolean;
+  onToggleMusic: () => void;
 }
 
-export default function GameCanvas({ player, onFinish, onBack }: GameCanvasProps) {
+export default function GameCanvas({ player, onFinish, onBack, musicOn, onToggleMusic }: GameCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const engineRef = useRef<PenaltyEngine | null>(null);
 
@@ -50,9 +52,14 @@ export default function GameCanvas({ player, onFinish, onBack }: GameCanvasProps
   return (
     <div className="canvas-wrapper">
       <canvas ref={canvasRef} className="game-canvas" />
-      <button className="game-back-btn" onClick={handleBack} title="В меню">
-        ✕
-      </button>
+      <div className="game-overlay-btns">
+        <button className="game-overlay-btn" onClick={onToggleMusic} title={musicOn ? 'Выключить музыку' : 'Включить музыку'}>
+          {musicOn ? '♪' : '♪̸'}
+        </button>
+        <button className="game-overlay-btn" onClick={handleBack} title="В меню">
+          ✕
+        </button>
+      </div>
     </div>
   );
 }

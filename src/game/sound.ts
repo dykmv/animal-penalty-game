@@ -7,7 +7,6 @@ function getCtx(): AudioContext {
   if (!ctx) {
     ctx = new AudioContext();
   }
-  // Resume if suspended (browser autoplay policy)
   if (ctx.state === 'suspended') {
     ctx.resume();
   }
@@ -61,49 +60,165 @@ function noise(duration: number, volume: number = 0.08, delay: number = 0) {
 }
 
 // ═══════════════════════════════════════
-//  PUBLIC SOUND EFFECTS
+//  SOUND EFFECTS
 // ═══════════════════════════════════════
 
-/** Short kick thump */
 export function playKick() {
   noise(0.12, 0.2);
   tone(120, 0.1, 'sine', 0.3);
   tone(80, 0.15, 'sine', 0.2, 0.03);
 }
 
-/** Ascending jingle — GOAL! */
 export function playGoal() {
-  tone(523, 0.15, 'square', 0.12);        // C5
-  tone(659, 0.15, 'square', 0.12, 0.12);  // E5
-  tone(784, 0.15, 'square', 0.12, 0.24);  // G5
-  tone(1047, 0.3, 'square', 0.15, 0.36);  // C6 (longer)
+  tone(523, 0.15, 'square', 0.12);
+  tone(659, 0.15, 'square', 0.12, 0.12);
+  tone(784, 0.15, 'square', 0.12, 0.24);
+  tone(1047, 0.3, 'square', 0.15, 0.36);
 }
 
-/** Descending tone — saved / miss */
 export function playSave() {
   tone(400, 0.15, 'triangle', 0.12);
   tone(300, 0.2, 'triangle', 0.1, 0.1);
 }
 
-/** Whistle — round start */
 export function playWhistle() {
   tone(880, 0.12, 'sine', 0.1);
   tone(1100, 0.3, 'sine', 0.12, 0.12);
 }
 
-/** UI button click */
 export function playClick() {
   tone(660, 0.05, 'square', 0.06);
 }
 
-/** Crowd cheer (noise-based) */
 export function playCrowd() {
   noise(0.6, 0.06);
   noise(0.4, 0.05, 0.1);
   noise(0.3, 0.04, 0.2);
 }
 
-/** Initialize audio context on first user interaction */
 export function initAudio() {
   getCtx();
+}
+
+// ═══════════════════════════════════════
+//  BACKGROUND MUSIC — retro pixel loop
+// ═══════════════════════════════════════
+//  A dreamy, gentle chiptune melody that loops.
+//  Uses square + triangle waves at low volume.
+
+let bgmPlaying = false;
+let bgmTimeout: number | null = null;
+
+// Notes in Hz — a gentle pentatonic melody in C major
+// Each entry: [freq, duration in beats, wave type]
+type NoteEntry = [number, number, OscillatorType];
+
+const BPM = 100;
+const BEAT = 60 / BPM;
+const VOL = 0.035; // quiet!
+
+// Melody line (square wave, higher)
+const melody: NoteEntry[] = [
+  [523, 1, 'square'],    // C5
+  [587, 1, 'square'],    // D5
+  [659, 2, 'square'],    // E5
+  [587, 1, 'square'],    // D5
+  [523, 1, 'square'],    // C5
+  [440, 2, 'square'],    // A4
+  [0, 1, 'square'],      // rest
+  [494, 1, 'square'],    // B4
+  [523, 1, 'square'],    // C5
+  [659, 1, 'square'],    // E5
+  [587, 2, 'square'],    // D5
+  [523, 1, 'square'],    // C5
+  [440, 1, 'square'],    // A4
+  [392, 2, 'square'],    // G4
+
+  [0, 1, 'square'],      // rest
+  [440, 1, 'square'],    // A4
+  [523, 1, 'square'],    // C5
+  [587, 1, 'square'],    // D5
+  [659, 2, 'square'],    // E5
+  [784, 1, 'square'],    // G5
+  [659, 1, 'square'],    // E5
+  [587, 1, 'square'],    // D5
+  [523, 3, 'square'],    // C5 (hold)
+  [0, 2, 'square'],      // rest
+];
+
+// Bass line (triangle wave, lower, simple root notes)
+const bass: NoteEntry[] = [
+  [131, 2, 'triangle'],  // C3
+  [0, 2, 'triangle'],
+  [131, 2, 'triangle'],  // C3
+  [0, 2, 'triangle'],
+  [110, 2, 'triangle'],  // A2
+  [0, 2, 'triangle'],
+  [110, 2, 'triangle'],  // A2
+  [0, 2, 'triangle'],
+  [98, 2, 'triangle'],   // G2
+  [0, 2, 'triangle'],
+  [98, 2, 'triangle'],   // G2
+  [0, 2, 'triangle'],
+  [131, 2, 'triangle'],  // C3
+  [0, 2, 'triangle'],
+  [131, 4, 'triangle'],  // C3 (hold)
+  [0, 2, 'triangle'],
+];
+
+function playLine(notes: NoteEntry[], vol: number) {
+  const ac = getCtx();
+  let offset = 0;
+
+  for (const [freq, beats, type] of notes) {
+    if (freq > 0) {
+      const dur = beats * BEAT * 0.85; // slightly shorter for staccato
+      const osc = ac.createOscillator();
+      const gain = ac.createGain();
+
+      osc.type = type;
+      osc.frequency.value = freq;
+      osc.connect(gain);
+      gain.connect(ac.destination);
+
+      const t = ac.currentTime + offset;
+      gain.gain.setValueAtTime(vol, t);
+      gain.gain.setValueAtTime(vol, t + dur * 0.7);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + dur);
+
+      osc.start(t);
+      osc.stop(t + dur + 0.02);
+    }
+    offset += beats * BEAT;
+  }
+  return offset;
+}
+
+function loopBgm() {
+  if (!bgmPlaying) return;
+
+  const melodyDur = playLine(melody, VOL);
+  playLine(bass, VOL * 0.8);
+
+  // Schedule next loop slightly before this one ends
+  const loopMs = melodyDur * 1000;
+  bgmTimeout = window.setTimeout(loopBgm, loopMs);
+}
+
+export function startBgm() {
+  if (bgmPlaying) return;
+  bgmPlaying = true;
+  loopBgm();
+}
+
+export function stopBgm() {
+  bgmPlaying = false;
+  if (bgmTimeout !== null) {
+    clearTimeout(bgmTimeout);
+    bgmTimeout = null;
+  }
+}
+
+export function isBgmPlaying() {
+  return bgmPlaying;
 }
