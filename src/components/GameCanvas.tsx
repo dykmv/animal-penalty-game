@@ -2,13 +2,15 @@ import { useEffect, useRef } from 'react';
 import type { Character } from '../game/types';
 import { W, H } from '../game/types';
 import { PenaltyEngine } from '../game/engine';
+import { playClick, initAudio } from '../game/sound';
 
 interface GameCanvasProps {
   player: Character;
   onFinish: (playerScore: number, aiScore: number) => void;
+  onBack: () => void;
 }
 
-export default function GameCanvas({ player, onFinish }: GameCanvasProps) {
+export default function GameCanvas({ player, onFinish, onBack }: GameCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const engineRef = useRef<PenaltyEngine | null>(null);
 
@@ -24,6 +26,8 @@ export default function GameCanvas({ player, onFinish }: GameCanvasProps) {
       ctx.imageSmoothingEnabled = false;
     }
 
+    initAudio();
+
     const engine = new PenaltyEngine(canvas, player, onFinish);
     engineRef.current = engine;
     engine.start();
@@ -34,12 +38,21 @@ export default function GameCanvas({ player, onFinish }: GameCanvasProps) {
     };
   }, [player, onFinish]);
 
+  const handleBack = () => {
+    playClick();
+    if (engineRef.current) {
+      engineRef.current.destroy();
+      engineRef.current = null;
+    }
+    onBack();
+  };
+
   return (
     <div className="canvas-wrapper">
-      <canvas
-        ref={canvasRef}
-        className="game-canvas"
-      />
+      <canvas ref={canvasRef} className="game-canvas" />
+      <button className="game-back-btn" onClick={handleBack} title="В меню">
+        ✕
+      </button>
     </div>
   );
 }

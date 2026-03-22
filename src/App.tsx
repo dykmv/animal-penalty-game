@@ -3,6 +3,7 @@ import './index.css';
 import type { Character, AppPhase } from './game/types';
 import CharacterSelect from './components/CharacterSelect';
 import GameCanvas from './components/GameCanvas';
+import { playClick, initAudio } from './game/sound';
 
 function App() {
   const [phase, setPhase] = useState<AppPhase>('menu');
@@ -27,7 +28,7 @@ function App() {
         <h1 className="retro-title main-title">Звериные<br/>Пенальти</h1>
         <p className="retro-sub">Fantasy Penalty Shootout</p>
 
-        <button className="retro-btn pick-btn" onClick={() => setPhase('select')}>
+        <button className="retro-btn pick-btn" onClick={() => { initAudio(); playClick(); setPhase('select'); }}>
           {player ? (
             <>
               {player.emoji} {player.name}
@@ -39,7 +40,7 @@ function App() {
         </button>
 
         {player && (
-          <button className="retro-btn play-btn" onClick={() => setPhase('playing')}>
+          <button className="retro-btn play-btn" onClick={() => { playClick(); setPhase('playing'); }}>
             Играть!
           </button>
         )}
@@ -54,9 +55,13 @@ function App() {
     return <CharacterSelect onPick={handlePick} />;
   }
 
+  const handleBack = useCallback(() => {
+    setPhase('menu');
+  }, []);
+
   // ── Playing ──
   if (phase === 'playing' && player) {
-    return <GameCanvas key={Date.now()} player={player} onFinish={handleFinish} />;
+    return <GameCanvas key={Date.now()} player={player} onFinish={handleFinish} onBack={handleBack} />;
   }
 
   // ── Final ──
@@ -75,10 +80,10 @@ function App() {
         <p className="retro-sub">
           {won ? 'Отличная игра!' : draw ? 'Попробуй ещё раз!' : 'Не сдавайся!'}
         </p>
-        <button className="retro-btn play-btn" onClick={() => setPhase('playing')}>
+        <button className="retro-btn play-btn" onClick={() => { playClick(); setPhase('playing'); }}>
           Ещё раз!
         </button>
-        <button className="retro-btn pick-btn" onClick={() => setPhase('menu')}>
+        <button className="retro-btn pick-btn" onClick={() => { playClick(); setPhase('menu'); }}>
           В меню
         </button>
       </div>

@@ -1,6 +1,7 @@
 import type { Character, GameState, DiveDir } from './types';
 import { W, H, GOAL_L, GOAL_R, GOAL_T, GOAL_B, GOAL_W, CHARACTERS } from './types';
 import { renderScene } from './draw';
+import { playKick, playGoal, playSave, playWhistle, playCrowd } from './sound';
 
 const CONFETTI_COLORS = ['#FFD700', '#FF69B4', '#C850C0', '#6BCB77', '#FF6B6B', '#FFF'];
 const KICK_DURATION = 0.55; // seconds
@@ -138,6 +139,7 @@ export class PenaltyEngine {
 
       // Check result
       this.state.lastResult = zone === aiDive ? 'save' : 'goal';
+      playKick();
     } else {
       // Player is goalkeeper — click to choose dive direction
       if (!inGoal) return;
@@ -157,6 +159,7 @@ export class PenaltyEngine {
       this.state.animDuration = KICK_DURATION;
 
       this.state.lastResult = aiShot === playerDive ? 'save' : 'goal';
+      playKick();
     }
   }
 
@@ -244,6 +247,10 @@ export class PenaltyEngine {
           if (s.shotTarget) {
             this.spawnConfetti(s.shotTarget.x, s.shotTarget.y);
           }
+          playGoal();
+          playCrowd();
+        } else {
+          playSave();
         }
       }
     }
@@ -291,6 +298,8 @@ export class PenaltyEngine {
     s.animTime = 0;
     s.animDuration = 0;
     s.resultTimer = 0;
+
+    playWhistle();
   }
 
   private render() {
