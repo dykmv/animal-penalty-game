@@ -1,9 +1,28 @@
+import { useRef, useEffect } from 'react';
 import { CHARACTERS } from '../game/types';
 import type { Character } from '../game/types';
+import { getPortrait } from '../game/portraits';
 import { playClick } from '../game/sound';
 
 interface Props {
   onPick: (ch: Character) => void;
+}
+
+function CharPortrait({ ch }: { ch: Character }) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    const cv = canvasRef.current;
+    if (!cv) return;
+    cv.width = 32;
+    cv.height = 32;
+    const ctx = cv.getContext('2d')!;
+    ctx.imageSmoothingEnabled = false;
+    const portrait = getPortrait(ch, 'neutral');
+    ctx.drawImage(portrait, 0, 0, 32, 32);
+  }, [ch]);
+
+  return <canvas ref={canvasRef} className="char-portrait-canvas" />;
 }
 
 export default function CharacterSelect({ onPick }: Props) {
@@ -21,7 +40,7 @@ export default function CharacterSelect({ onPick }: Props) {
             }}
             onClick={() => { playClick(); onPick(ch); }}
           >
-            <span className="char-emoji">{ch.emoji}</span>
+            <CharPortrait ch={ch} />
             <span className="char-name">{ch.name}</span>
             <span className="char-title">{ch.title}</span>
           </button>

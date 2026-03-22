@@ -120,7 +120,7 @@ export const CHARACTERS: Character[] = [
 
 // ── Game state ──
 export type AppPhase = 'menu' | 'select' | 'playing' | 'final';
-export type ShotPhase = 'aiming' | 'kicking' | 'result' | 'transition';
+export type ShotPhase = 'aiming' | 'kicking' | 'result' | 'emotion' | 'transition';
 export type DiveDir = 'left' | 'center' | 'right';
 
 export interface Particle {
@@ -150,6 +150,7 @@ export interface GameState {
   animTime: number;
   animDuration: number;
   resultTimer: number;
+  emotionTimer: number;
 
   // effects
   shake: number;

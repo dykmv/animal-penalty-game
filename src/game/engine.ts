@@ -4,31 +4,31 @@ import { renderScene } from './draw';
 import { playKick, playGoal, playSave, playWhistle, playCrowd } from './sound';
 
 const CONFETTI_COLORS = ['#FFD700', '#FF69B4', '#C850C0', '#6BCB77', '#FF6B6B', '#FFF'];
-const KICK_DURATION = 0.55; // seconds
-const RESULT_DURATION = 1.6;
-const TRANSITION_DURATION = 0.8;
+const KICK_DURATION = 0.55;
+const RESULT_DURATION = 0.8;       // shorter — then emotion kicks in
+const EMOTION_DURATION = 1.6;      // close-up emotion face
+const TRANSITION_DURATION = 0.6;
 
 export class PenaltyEngine {
   private canvas: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D;
-  private playerChar: Character;
-  private opponentChar: Character;
+  playerChar: Character;   // public for draw access
+  opponentChar: Character; // public for draw access
   private state: GameState;
   private rafId: number = 0;
   private lastTime: number = 0;
-  private onFinish: (playerScore: number, aiScore: number) => void;
+  private onFinish: (playerScore: number, aiScore: number, opponent: Character) => void;
 
   constructor(
     canvas: HTMLCanvasElement,
     playerChar: Character,
-    onFinish: (playerScore: number, aiScore: number) => void,
+    onFinish: (playerScore: number, aiScore: number, opponent: Character) => void,
   ) {
     this.canvas = canvas;
     this.ctx = canvas.getContext('2d')!;
     this.playerChar = playerChar;
     this.onFinish = onFinish;
 
-    // Pick a random opponent
     const others = CHARACTERS.filter((c) => c.id !== playerChar.id);
     this.opponentChar = others[Math.floor(Math.random() * others.length)];
 
@@ -46,13 +46,13 @@ export class PenaltyEngine {
       animTime: 0,
       animDuration: 0,
       resultTimer: 0,
+      emotionTimer: 0,
       shake: 0,
       particles: [],
       hoverX: 0,
       hoverY: 0,
     };
 
-    // Event handlers
     this.handleClick = this.handleClick.bind(this);
     this.handleMove = this.handleMove.bind(this);
     this.handleTouch = this.handleTouch.bind(this);
@@ -77,7 +77,6 @@ export class PenaltyEngine {
     this.canvas.removeEventListener('touchmove', this.handleTouchMove);
   }
 
-  // ── Coordinate conversion ──
   private toCanvas(clientX: number, clientY: number): { x: number; y: number } {
     const rect = this.canvas.getBoundingClientRect();
     return {
@@ -86,7 +85,6 @@ export class PenaltyEngine {
     };
   }
 
-  // ── Input ──
   private handleMove(e: MouseEvent) {
     const p = this.toCanvas(e.clientX, e.clientY);
     this.state.hoverX = p.x;
@@ -123,11 +121,8 @@ export class PenaltyEngine {
     if (this.state.isPlayerShooting) {
       if (!inGoal) return;
 
-      // Determine shot zone
       const nx = (cx - GOAL_L) / GOAL_W;
       const zone: DiveDir = nx < 0.33 ? 'left' : nx < 0.66 ? 'center' : 'right';
-
-      // AI keeper dives (slightly biased to make kid win more)
       const aiDive = this.randomDive(true);
 
       this.state.shotTarget = { x: cx, y: cy };
@@ -136,18 +131,13 @@ export class PenaltyEngine {
       this.state.shotPhase = 'kicking';
       this.state.animTime = 0;
       this.state.animDuration = KICK_DURATION;
-
-      // Check result
       this.state.lastResult = zone === aiDive ? 'save' : 'goal';
       playKick();
     } else {
-      // Player is goalkeeper — click to choose dive direction
       if (!inGoal) return;
 
       const nx = (cx - GOAL_L) / GOAL_W;
       const playerDive: DiveDir = nx < 0.33 ? 'left' : nx < 0.66 ? 'center' : 'right';
-
-      // AI shoots randomly
       const aiShot = this.randomDive(false);
       const aiTarget = this.zoneToTarget(aiShot);
 
@@ -157,7 +147,6 @@ export class PenaltyEngine {
       this.state.shotPhase = 'kicking';
       this.state.animTime = 0;
       this.state.animDuration = KICK_DURATION;
-
       this.state.lastResult = aiShot === playerDive ? 'save' : 'goal';
       playKick();
     }
@@ -166,8 +155,6 @@ export class PenaltyEngine {
   private randomDive(dumb: boolean): DiveDir {
     const dirs: DiveDir[] = ['left', 'center', 'right'];
     if (dumb) {
-      // AI keeper: only picks correctly ~28% of the time
-      // Biased towards center (kids tend to shoot to sides)
       const weights = [0.3, 0.4, 0.3];
       const r = Math.random();
       if (r < weights[0]) return 'left';
@@ -186,14 +173,12 @@ export class PenaltyEngine {
     }
   }
 
-  // ── Particles ──
   private spawnConfetti(x: number, y: number) {
     for (let i = 0; i < 25; i++) {
       const angle = Math.random() * Math.PI * 2;
       const speed = 40 + Math.random() * 80;
       this.state.particles.push({
-        x,
-        y,
+        x, y,
         vx: Math.cos(angle) * speed,
         vy: Math.sin(angle) * speed - 30,
         color: CONFETTI_COLORS[Math.floor(Math.random() * CONFETTI_COLORS.length)],
@@ -202,30 +187,23 @@ export class PenaltyEngine {
     }
   }
 
-  // ── Game loop ──
   private loop(now: number) {
     const dt = Math.min((now - this.lastTime) / 1000, 0.05);
     this.lastTime = now;
-
     this.update(dt);
     this.render();
-
     this.rafId = requestAnimationFrame(this.loop);
   }
 
   private update(dt: number) {
     const s = this.state;
 
-    // Shake decay
-    if (s.shake > 0) {
-      s.shake = Math.max(0, s.shake - dt * 4);
-    }
+    if (s.shake > 0) s.shake = Math.max(0, s.shake - dt * 4);
 
-    // Particle update
     for (const p of s.particles) {
       p.x += p.vx * dt;
       p.y += p.vy * dt;
-      p.vy += 120 * dt; // gravity
+      p.vy += 120 * dt;
       p.life -= dt * 0.8;
     }
     s.particles = s.particles.filter((p) => p.life > 0);
@@ -233,20 +211,14 @@ export class PenaltyEngine {
     if (s.shotPhase === 'kicking') {
       s.animTime += dt;
       if (s.animTime >= s.animDuration) {
-        // Kick animation done → show result
         s.shotPhase = 'result';
         s.resultTimer = 0;
 
         if (s.lastResult === 'goal') {
-          if (s.isPlayerShooting) {
-            s.playerScore++;
-          } else {
-            s.aiScore++;
-          }
+          if (s.isPlayerShooting) s.playerScore++;
+          else s.aiScore++;
           s.shake = 1;
-          if (s.shotTarget) {
-            this.spawnConfetti(s.shotTarget.x, s.shotTarget.y);
-          }
+          if (s.shotTarget) this.spawnConfetti(s.shotTarget.x, s.shotTarget.y);
           playGoal();
           playCrowd();
         } else {
@@ -258,6 +230,14 @@ export class PenaltyEngine {
     if (s.shotPhase === 'result') {
       s.resultTimer += dt;
       if (s.resultTimer >= RESULT_DURATION) {
+        s.shotPhase = 'emotion';
+        s.emotionTimer = 0;
+      }
+    }
+
+    if (s.shotPhase === 'emotion') {
+      s.emotionTimer += dt;
+      if (s.emotionTimer >= EMOTION_DURATION) {
         s.shotPhase = 'transition';
         s.animTime = 0;
       }
@@ -275,21 +255,17 @@ export class PenaltyEngine {
     const s = this.state;
 
     if (s.isPlayerShooting) {
-      // Switch to player defending
       s.isPlayerShooting = false;
     } else {
-      // Both have shot this round
       if (s.round >= s.maxRounds) {
-        // Game over
         this.destroy();
-        this.onFinish(s.playerScore, s.aiScore);
+        this.onFinish(s.playerScore, s.aiScore, this.opponentChar);
         return;
       }
       s.round++;
       s.isPlayerShooting = true;
     }
 
-    // Reset shot state
     s.shotPhase = 'aiming';
     s.shotTarget = null;
     s.shotZone = null;
@@ -298,6 +274,7 @@ export class PenaltyEngine {
     s.animTime = 0;
     s.animDuration = 0;
     s.resultTimer = 0;
+    s.emotionTimer = 0;
 
     playWhistle();
   }

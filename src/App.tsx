@@ -1,8 +1,10 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import './index.css';
 import type { Character, AppPhase } from './game/types';
 import CharacterSelect from './components/CharacterSelect';
 import GameCanvas from './components/GameCanvas';
+import AwardCeremony from './components/AwardCeremony';
+import MenuPortrait from './components/MenuPortrait';
 import { playClick, initAudio, startBgm, stopBgm, isBgmPlaying } from './game/sound';
 
 function App() {
@@ -10,6 +12,7 @@ function App() {
   const [player, setPlayer] = useState<Character | null>(null);
   const [finalScore, setFinalScore] = useState({ p: 0, ai: 0 });
   const [musicOn, setMusicOn] = useState(false);
+  const opponentRef = useRef<Character | null>(null);
 
   const toggleMusic = useCallback(() => {
     initAudio();
@@ -27,8 +30,9 @@ function App() {
     setPhase('menu');
   }, []);
 
-  const handleFinish = useCallback((p: number, ai: number) => {
+  const handleFinish = useCallback((p: number, ai: number, opponent?: Character) => {
     setFinalScore({ p, ai });
+    if (opponent) opponentRef.current = opponent;
     setPhase('final');
   }, []);
 
@@ -47,7 +51,8 @@ function App() {
         <button className="retro-btn pick-btn" onClick={() => { initAudio(); if (!isBgmPlaying()) { startBgm(); setMusicOn(true); } playClick(); setPhase('select'); }}>
           {player ? (
             <>
-              {player.emoji} {player.name}
+              <MenuPortrait ch={player} />
+              {player.name}
               <span className="btn-hint">нажми чтобы сменить</span>
             </>
           ) : (
@@ -65,7 +70,7 @@ function App() {
           {musicOn ? '♪' : '♪̸'}
         </button>
 
-        <div className="menu-footer">⚽ 5 пенальти · бей и лови ⚽</div>
+        <div className="menu-footer">5 пенальти · бей и лови</div>
       </div>
     );
   }
@@ -80,29 +85,17 @@ function App() {
     return <GameCanvas key={Date.now()} player={player} onFinish={handleFinish} onBack={handleBack} musicOn={musicOn} onToggleMusic={toggleMusic} />;
   }
 
-  // ── Final ──
+  // ── Final — Award Ceremony ──
   if (phase === 'final' && player) {
-    const won = finalScore.p > finalScore.ai;
-    const draw = finalScore.p === finalScore.ai;
     return (
-      <div className="screen final-screen">
-        <div className="final-trophy">{won ? '🏆' : draw ? '🤝' : '💪'}</div>
-        <h1 className="retro-title">
-          {won ? 'Победа!' : draw ? 'Ничья!' : 'В следующий раз!'}
-        </h1>
-        <div className="final-score-big">
-          {player.emoji} {finalScore.p} : {finalScore.ai} 🎯
-        </div>
-        <p className="retro-sub">
-          {won ? 'Отличная игра!' : draw ? 'Попробуй ещё раз!' : 'Не сдавайся!'}
-        </p>
-        <button className="retro-btn play-btn" onClick={() => { playClick(); setPhase('playing'); }}>
-          Ещё раз!
-        </button>
-        <button className="retro-btn pick-btn" onClick={() => { playClick(); setPhase('menu'); }}>
-          В меню
-        </button>
-      </div>
+      <AwardCeremony
+        player={player}
+        opponent={opponentRef.current}
+        playerScore={finalScore.p}
+        aiScore={finalScore.ai}
+        onReplay={() => { playClick(); setPhase('playing'); }}
+        onMenu={() => { playClick(); setPhase('menu'); }}
+      />
     );
   }
 

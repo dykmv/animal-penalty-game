@@ -6,7 +6,7 @@ import { playClick, initAudio } from '../game/sound';
 
 interface GameCanvasProps {
   player: Character;
-  onFinish: (playerScore: number, aiScore: number) => void;
+  onFinish: (playerScore: number, aiScore: number, opponent?: Character) => void;
   onBack: () => void;
   musicOn: boolean;
   onToggleMusic: () => void;

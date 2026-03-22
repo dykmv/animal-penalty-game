@@ -146,6 +146,24 @@ body {
   opacity: 0.6;
 }
 
+/* Pixel portrait canvases */
+.char-portrait-canvas,
+.menu-portrait-canvas {
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+}
+
+.char-portrait-canvas {
+  width: 64px;
+  height: 64px;
+}
+
+.menu-portrait-canvas {
+  width: 40px;
+  height: 40px;
+}
+
 /* ═══════════════════════════════════════
    CHARACTER SELECT
    ═══════════════════════════════════════ */
@@ -180,10 +198,6 @@ body {
 .char-card:hover {
   box-shadow: 0 0 20px rgba(255, 255, 255, 0.15);
   transform: translateY(-2px);
-}
-
-.char-emoji {
-  font-size: 2.2rem;
 }
 
 .char-name {
@@ -304,6 +318,20 @@ body {
   color: #FFD700;
   text-shadow: 0 0 10px rgba(255, 215, 0, 0.4);
   margin: 0.5rem 0;
+}
+
+/* ═══════════════════════════════════════
+   AWARD CEREMONY
+   ═══════════════════════════════════════ */
+.ceremony-wrapper {
+  flex-direction: column;
+  gap: 12px;
+}
+
+.ceremony-buttons {
+  display: flex;
+  gap: 8px;
+  animation: fadeIn 0.5s ease;
 }
 
 /* ═══════════════════════════════════════

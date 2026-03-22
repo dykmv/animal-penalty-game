@@ -6,6 +6,7 @@ import {
   SHOOTER_X, SHOOTER_Y,
   KEEPER_X, KEEPER_Y,
 } from './types';
+import { drawPortrait, drawEmotionCloseup } from './portraits';
 
 // ─── Helpers ───────────────────────────────────────
 function px(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, c: string) {
@@ -402,8 +403,8 @@ export function drawBall(ctx: CanvasRenderingContext2D, x: number, y: number, si
 // ═══════════════════════════════════════════════════
 export function drawScoreboard(
   ctx: CanvasRenderingContext2D,
-  playerEmoji: string,
-  aiEmoji: string,
+  playerChar: Character,
+  opponentChar: Character,
   playerScore: number,
   aiScore: number,
   round: number,
@@ -411,25 +412,26 @@ export function drawScoreboard(
 ) {
   // Background bar
   ctx.fillStyle = 'rgba(0,0,0,0.5)';
-  ctx.fillRect(0, 0, W, 20);
+  ctx.fillRect(0, 0, W, 22);
 
+  // Player portrait + score (left)
+  drawPortrait(ctx, playerChar, 2, 1, 20, 'neutral');
   ctx.font = '10px "Press Start 2P", monospace';
   ctx.textBaseline = 'top';
-
-  // Player score (left)
   ctx.textAlign = 'left';
   ctx.fillStyle = '#FFD700';
-  ctx.fillText(`${playerEmoji} ${playerScore}`, 6, 5);
+  ctx.fillText(`${playerScore}`, 26, 6);
 
   // Round (center)
   ctx.textAlign = 'center';
   ctx.fillStyle = '#FFF';
-  ctx.fillText(`${round}/${maxRounds}`, W / 2, 5);
+  ctx.fillText(`${round}/${maxRounds}`, W / 2, 6);
 
-  // AI score (right)
+  // AI score + portrait (right)
   ctx.textAlign = 'right';
   ctx.fillStyle = '#FFD700';
-  ctx.fillText(`${aiScore} ${aiEmoji}`, W - 6, 5);
+  ctx.fillText(`${aiScore}`, W - 26, 6);
+  drawPortrait(ctx, opponentChar, W - 22, 1, 20, 'neutral');
 }
 
 export function drawInstruction(ctx: CanvasRenderingContext2D, text: string) {
@@ -593,15 +595,7 @@ export function renderScene(
   drawCharBack(ctx, shooter, SHOOTER_X, SHOOTER_Y, kickT);
 
   // UI
-  drawScoreboard(
-    ctx,
-    playerChar.emoji,
-    opponentChar.emoji,
-    state.playerScore,
-    state.aiScore,
-    state.round,
-    state.maxRounds,
-  );
+  drawScoreboard(ctx, playerChar, opponentChar, state.playerScore, state.aiScore, state.round, state.maxRounds);
 
   // Phase-specific overlays
   if (shotPhase === 'aiming') {
@@ -613,7 +607,6 @@ export function renderScene(
       drawCrosshair(ctx, state.hoverX, state.hoverY, inGoal);
     } else {
       drawInstruction(ctx, 'Куда прыгнешь?');
-      // Determine hover zone
       let hoverZone: DiveDir | null = null;
       if (state.hoverY >= GOAL_T && state.hoverY <= GOAL_B &&
           state.hoverX >= GOAL_L && state.hoverX <= GOAL_R) {
@@ -630,12 +623,46 @@ export function renderScene(
     drawResultText(ctx, state.lastResult, isPlayerShooting);
   }
 
-  drawPhaseLabel(ctx, isPlayerShooting);
-
   // Particles
   if (state.particles.length > 0) {
     drawParticles(ctx, state.particles);
   }
+
+  // Emotion close-up
+  if (shotPhase === 'emotion' && state.lastResult) {
+    // Determine who reacts and with which emotion
+    let reactChar: Character;
+    let emotion: 'happy' | 'sad';
+
+    if (state.lastResult === 'goal') {
+      // Shooter is happy
+      reactChar = isPlayerShooting ? playerChar : opponentChar;
+      emotion = 'happy';
+    } else {
+      // Keeper is happy (saved it)
+      reactChar = isPlayerShooting ? opponentChar : playerChar;
+      emotion = 'happy';
+    }
+
+    const fadeIn = Math.min(state.emotionTimer / 0.3, 1);
+    drawEmotionCloseup(ctx, reactChar, emotion, W, H, fadeIn);
+
+    // Also show the sad character smaller below
+    let sadChar: Character;
+    if (state.lastResult === 'goal') {
+      sadChar = isPlayerShooting ? opponentChar : playerChar;
+    } else {
+      sadChar = isPlayerShooting ? playerChar : opponentChar;
+    }
+    if (fadeIn > 0.5) {
+      const sadAlpha = Math.min((fadeIn - 0.5) * 2, 0.7);
+      ctx.globalAlpha = sadAlpha;
+      drawPortrait(ctx, sadChar, W / 2 + 50, H / 2 + 20, 36, 'sad');
+      ctx.globalAlpha = 1;
+    }
+  }
+
+  drawPhaseLabel(ctx, isPlayerShooting);
 
   ctx.restore();
 }
